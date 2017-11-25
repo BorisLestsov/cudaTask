@@ -1,7 +1,7 @@
-CFLAGS= -O2
+CFLAGS= -O2 -g
 CC= gcc
 NVCC= nvcc
-CUFLAGS= -I. -O2 -g
+CUFLAGS= -I. -O2 -g -gencode=arch=compute_20,code=compute_20
 LINKFLAGS= -L/usr/local/cuda/lib64 -lcudart
 
 .PHONY: target clean

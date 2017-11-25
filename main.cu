@@ -8,7 +8,7 @@
 #define  Max(a,b) ((a)>(b)?(a):(b))
 
 FILE *in;
-int TRACE = 0;
+int TRACE = 1;
 int i, j, k, it;
 double EPS;
 int     M, N, K, ITMAX;
@@ -29,16 +29,6 @@ double jac(double *a, int mm, int nn, int kk, int itmax, double maxeps);
 
 int main(int an, char **as)
 {
-    double* A;
-    cudaMalloc(&A, 10*sizeof(double));
-    double* B;
-    cudaMalloc(&B, 10*sizeof(double));
-    cudaMemset(B, 0, 10);
-    do_none<<<1, 10>>>(A, B);
-    
-    double* B_h = (double*) malloc(10*sizeof(double));
-    cudaMemcpy(B_h, A, 10*sizeof(double), cudaMemcpyDeviceToHost);
-    printf("%f \n", B_h[0]);
 
     in = fopen("data3.in", "r");
     if (in == NULL) { printf("Can not open 'data3.in' "); exit(1); }
@@ -88,25 +78,39 @@ int main(int an, char **as)
 
 double jac(double *a, int mm, int nn, int kk, int itmax, double maxeps)
 {
-    double *b;
+    double *b, *b_d, *a_d;
     int i, j, k;
     double eps;
 
+    printf("%f \n", a(1,1,2));
+
+    gpuErrchk(cudaSetDevice(0));
+
     b = (double*) malloc(mm*nn*kk*sizeof(double));
+    b(1,1,2) = 500.0;
+    gpuErrchk(cudaMalloc(&b_d, mm*nn*kk*sizeof(double)));
+    gpuErrchk(cudaMalloc(&a_d, mm*nn*kk*sizeof(double)));
+    gpuErrchk(cudaMemcpy(b_d, b, mm*nn*kk*sizeof(double), cudaMemcpyHostToDevice));
 
     for (it = 1; it <= itmax - 1; it++)
     {
-        for (i = 1; i <= mm - 2; i++)
-            for (j = 1; j <= nn - 2; j++)
-                for (k = 1; k <= kk - 2; k++)
-                    b(i, j, k) = (a(i - 1, j, k) + a(i + 1, j, k) + a(i, j - 1, k) + a(i, j + 1, k)
-                                 + a(i, j, k - 1) + a(i, j, k + 1)) / 6.;
+        //gpuErrchk(cudaMemcpy(a_d, a, mm*nn*kk*sizeof(double), cudaMemcpyHostToDevice));
+        cudaError_t err = cudaGetLastError();
+        if (err != cudaSuccess) 
+            printf("Error1: %s\n", cudaGetErrorString(err)); 
+        jac_comp<<<1, dim3(mm-2,nn-2,kk-2)>>>(a_d, b_d, mm, nn, kk);
+        if (err != cudaSuccess) 
+            printf("Error2: %s\n", cudaGetErrorString(err));
+        gpuErrchk(cudaMemcpy(b, b_d, mm*nn*kk*sizeof(double), cudaMemcpyDeviceToHost));
+        
+        printf("%f %f \n", a(1,1,2), b(1,1,2));
 
         eps = 0.;
         for (i = 1; i <= mm - 2; i++)
             for (j = 1; j <= nn - 2; j++)
                 for (k = 1; k <= kk - 2; k++)
                 {
+                    //printf("%f %f \n", a(i,j,k), b(i,j,k));
                     eps = Max(fabs(b(i, j, k) - a(i, j, k)), eps);
                     a(i, j, k) = b(i, j, k);
                 }
