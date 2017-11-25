@@ -29,8 +29,16 @@ double jac(double *a, int mm, int nn, int kk, int itmax, double maxeps);
 
 int main(int an, char **as)
 {
-
-    do_none<<<1, dim3(3,3,3)>>>();
+    double* A;
+    cudaMalloc(&A, 10*sizeof(double));
+    double* B;
+    cudaMalloc(&B, 10*sizeof(double));
+    cudaMemset(B, 0, 10);
+    do_none<<<1, 10>>>(A, B);
+    
+    double* B_h = (double*) malloc(10*sizeof(double));
+    cudaMemcpy(B_h, A, 10*sizeof(double), cudaMemcpyDeviceToHost);
+    printf("%f \n", B_h[0]);
 
     in = fopen("data3.in", "r");
     if (in == NULL) { printf("Can not open 'data3.in' "); exit(1); }

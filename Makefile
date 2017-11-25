@@ -1,7 +1,7 @@
-CFLAGS= 
+CFLAGS= -O2
 CC= gcc
 NVCC= nvcc
-CUFLAGS= -I. 
+CUFLAGS= -I. -O2 -g
 LINKFLAGS= -L/usr/local/cuda/lib64 -lcudart
 
 .PHONY: target clean
