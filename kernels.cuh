@@ -13,3 +13,12 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 __global__
 void jac_comp(double* a, double* b, int mm, int nn, int kk, int BLOCKSIZE);
+
+__global__
+void jac_diff(double* res, double* a, double* b, int mm, int nn, int kk, int BLOCKSIZE);
+
+__global__
+void fill(double* a, double value, int mm, int nn, int kk, int BLOCKSIZE);
+
+__global__ 
+void max_reduce(const double* const d_array, float* d_max, const size_t elements);
