@@ -76,34 +76,33 @@ int main(int an, char **as)
 #define a(i,j,k) a[((i)*nn+(j))*kk+(k)]
 #define b(i,j,k) b[((i)*nn+(j))*kk+(k)]
 
+#define BLOCKSIZE 4
+
 double jac(double *a, int mm, int nn, int kk, int itmax, double maxeps)
 {
     double *b, *b_d, *a_d;
     int i, j, k;
     double eps;
 
-    printf("%f \n", a(1,1,2));
-
     gpuErrchk(cudaSetDevice(0));
 
     b = (double*) malloc(mm*nn*kk*sizeof(double));
-    b(1,1,2) = 500.0;
     gpuErrchk(cudaMalloc(&b_d, mm*nn*kk*sizeof(double)));
     gpuErrchk(cudaMalloc(&a_d, mm*nn*kk*sizeof(double)));
-    gpuErrchk(cudaMemcpy(b_d, b, mm*nn*kk*sizeof(double), cudaMemcpyHostToDevice));
+    //gpuErrchk(cudaMemcpy(b_d, b, mm*nn*kk*sizeof(double), cudaMemcpyHostToDevice));
 
-    for (it = 1; it <= itmax - 1; it++)
+    int mm_dim = (mm-2)/BLOCKSIZE + ((mm-2)%BLOCKSIZE!=0);
+    int nn_dim = (nn-2)/BLOCKSIZE + ((nn-2)%BLOCKSIZE!=0);
+    int kk_dim = (kk-2)/BLOCKSIZE + ((kk-2)%BLOCKSIZE!=0);
+    dim3 blockGrid  = dim3(mm_dim, nn_dim, kk_dim);
+    dim3 threadGrid = dim3(BLOCKSIZE, BLOCKSIZE, BLOCKSIZE);
+for (it = 1; it <= itmax - 1; it++)
     {
-        //gpuErrchk(cudaMemcpy(a_d, a, mm*nn*kk*sizeof(double), cudaMemcpyHostToDevice));
-        cudaError_t err = cudaGetLastError();
-        if (err != cudaSuccess) 
-            printf("Error1: %s\n", cudaGetErrorString(err)); 
-        jac_comp<<<1, dim3(mm-2,nn-2,kk-2)>>>(a_d, b_d, mm, nn, kk);
-        if (err != cudaSuccess) 
-            printf("Error2: %s\n", cudaGetErrorString(err));
+        gpuErrchk(cudaMemcpy(a_d, a, mm*nn*kk*sizeof(double), cudaMemcpyHostToDevice));
+        gpuErrchk(cudaGetLastError());
+        jac_comp<<<blockGrid, threadGrid>>>(a_d, b_d, mm, nn, kk, BLOCKSIZE);
         gpuErrchk(cudaMemcpy(b, b_d, mm*nn*kk*sizeof(double), cudaMemcpyDeviceToHost));
         
-        printf("%f %f \n", a(1,1,2), b(1,1,2));
 
         eps = 0.;
         for (i = 1; i <= mm - 2; i++)
