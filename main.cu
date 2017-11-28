@@ -6,6 +6,8 @@
 #include "cuda_runtime.h"
 #include "kernels.cuh"
 
+#include "mpi.h"
+
 #define  Max(a,b) ((a)>(b)?(a):(b))
 
 FILE *in;

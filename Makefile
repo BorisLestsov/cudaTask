@@ -1,8 +1,8 @@
 CFLAGS= -O2 -g
-CC= gcc
+CC= g++
 NVCC= nvcc
-CUFLAGS= -I. -O2 -g -gencode=arch=compute_20,code=compute_20
-LINKFLAGS= -L/usr/local/cuda/lib64 -lcudart
+CUFLAGS= -I. -O2 -g -gencode=arch=compute_20,code=compute_20 -I/usr/include/mpich-x86_64/
+LINKFLAGS= -L/usr/local/cuda/lib64 -lcudart -L/usr/lib64/mpich-3.2/lib/ -lmpi
 
 .PHONY: target clean
 
