@@ -105,7 +105,7 @@ float atomicMaxf(float* address, float val)
 
 
 __global__
-void max_reduce(const double* const d_array, float* d_max, const size_t elements)
+void jac_max(double* d_array, float* d_max, int elements)
 {
     extern __shared__ float shared[];
 
@@ -118,7 +118,7 @@ void max_reduce(const double* const d_array, float* d_max, const size_t elements
         gid += gridDim.x*blockDim.x;
     }
     __syncthreads();
-    gid = (blockDim.x * blockIdx.x) + tid;  // 1
+    gid = (blockDim.x * blockIdx.x) + tid;
     for (unsigned int s=blockDim.x/2; s>0; s>>=1) 
     {
         if (tid < s && gid < elements)

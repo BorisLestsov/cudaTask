@@ -133,7 +133,7 @@ double jac(double *a, int mm, int nn, int kk, int itmax, double maxeps)
         float epsf;
         gpuErrchk(cudaMemcpy(d_eps, &flt_min, sizeof(float), cudaMemcpyHostToDevice));
         int blocks = (mm*nn*kk)/REDUCE_THREADS + ((mm*nn*kk)%REDUCE_THREADS!=0);
-        max_reduce<<<blocks, REDUCE_THREADS, REDUCE_THREADS*sizeof(double)>>>(d_buf, d_eps, mm*nn*kk);
+        jac_max<<<blocks, REDUCE_THREADS, REDUCE_THREADS*sizeof(double)>>>(d_buf, d_eps, mm*nn*kk);
         
         gpuErrchk(cudaMemcpy(&epsf, d_eps, sizeof(float), cudaMemcpyDeviceToHost));
         eps = (double) epsf;        

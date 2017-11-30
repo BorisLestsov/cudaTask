@@ -19,6 +19,5 @@ void jac_diff(double* res, double* a, double* b, int mm, int nn, int kk, int BLO
 
 __global__
 void fill(double* a, double value, int mm, int nn, int kk, int BLOCKSIZE);
-
 __global__ 
-void max_reduce(const double* const d_array, float* d_max, const size_t elements);
+void jac_max(double* d_array, float* d_max, int elements);
